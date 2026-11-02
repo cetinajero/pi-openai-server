@@ -1,4 +1,4 @@
-# Pi OpenAI-Compatible Server (`pi-openai-server`)
+# An OpenAI-compatible API server for Pi.dev
 
 A lightweight FastAPI server that wraps the **Pi coding assistant** (`pi --no-session`) and exposes an **OpenAI-compatible REST API** (`/v1/models` and `/v1/chat/completions`). 
 
