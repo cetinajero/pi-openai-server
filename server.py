@@ -95,12 +95,20 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
     cmd.append(full_prompt)
     
     try:
+        env = os.environ.copy()
+        extra_paths = ["/opt/homebrew/bin", "/usr/local/bin", "/Users/cetinajero/.pi/agent/bin"]
+        current_path = env.get("PATH", "")
+        for p in extra_paths:
+            if p not in current_path:
+                current_path = f"{p}:{current_path}"
+        env["PATH"] = current_path
+
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=180,
-            env=os.environ.copy()
+            env=env
         )
         
         if result.returncode != 0:
