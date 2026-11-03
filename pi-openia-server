@@ -70,7 +70,6 @@ case "$1" in
       exit $?
     fi
 
-    # Ensure /usr/local/bin exists
     mkdir -p /usr/local/bin
 
     TEMP_PLIST="/tmp/$PLIST_NAME"
@@ -106,14 +105,10 @@ EOF
     chown root:wheel "$SYSTEM_PLIST"
     chmod 644 "$SYSTEM_PLIST"
 
-    # Stop/unload old service if active
     launchctl bootout system/$PLIST_NAME 2>/dev/null || launchctl unload "$SYSTEM_PLIST" 2>/dev/null || true
-
-    # Enable and bootstrap new service
     launchctl enable system/$PLIST_NAME 2>/dev/null || true
     launchctl bootstrap system "$SYSTEM_PLIST" 2>/dev/null || launchctl load -w "$SYSTEM_PLIST"
 
-    # Create/update global symlink in PATH pointing to current version
     ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH"
     chmod +x "$PROJECT_DIR/pi-openia-server"
     chmod +x "$SYMLINK_PATH"
@@ -141,8 +136,36 @@ EOF
       echo "Global symlink removed."
     fi
     ;;
+  update)
+    echo "Updating pi-openia-server repository..."
+    cd "$PROJECT_DIR"
+    git pull origin main
+
+    echo "Updating Python dependencies..."
+    if [ -f "$PROJECT_DIR/venv/bin/pip" ]; then
+      "$PROJECT_DIR/venv/bin/pip" install --upgrade pip fastapi uvicorn pydantic
+    fi
+
+    echo "Updating global symlink..."
+    if [ "$EUID" -eq 0 ]; then
+      mkdir -p /usr/local/bin
+      ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH"
+      chmod +x "$PROJECT_DIR/pi-openia-server"
+      chmod +x "$SYMLINK_PATH"
+    else
+      sudo ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH" 2>/dev/null || true
+    fi
+
+    echo "Restarting service/server..."
+    if [ -f "$SYSTEM_PLIST" ]; then
+      sudo "$0" restart
+    else
+      "$0" restart
+    fi
+    echo "Update completed successfully."
+    ;;
   *)
-    echo "Usage: pi-openia-server {status|start|stop|restart|install|uninstall}"
+    echo "Usage: pi-openia-server {status|start|stop|restart|install|uninstall|update}"
     exit 1
     ;;
 esac

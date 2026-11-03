@@ -19,7 +19,7 @@ class ChatMessage(BaseModel):
         extra = "allow"
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "google/gemini-flash-lite-latest (15/250/500)"
+    model: str = "google/gemini-flash-lite-latest (15-250-500)"
     messages: List[ChatMessage]
     stream: Optional[bool] = False
 
@@ -29,18 +29,18 @@ class ChatCompletionRequest(BaseModel):
 @app.get("/v1/models")
 async def list_models():
     model_ids = [
-        "google/gemini-3.1-flash-lite (15/250/500)",
-        "google/gemini-3.5-flash-lite (15/250/500)",
-        "google/gemini-flash-lite-latest (15/250/500)",
-        "google/gemini-3.1-flash-lite-preview (15/250/500)",
-        "google/gemini-3.5-flash (5/250/20)",
-        "google/gemini-3.6-flash (5/250/20)",
-        "google/gemini-3.8-flash (5/250/20)",
-        "google/gemini-flash-latest (5/250/20)",
-        "google/gemini-3-flash-preview (5/250/20)",
-        "google/gemini-robotics-er-2-preview (5/250/20)",
-        "google/gemma-4-26b-a4b-it (30/16/14400)",
-        "google/gemma-4-31b-it (30/16/14400)",
+        "google/gemini-3.1-flash-lite (15-250-500)",
+        "google/gemini-3.5-flash-lite (15-250-500)",
+        "google/gemini-flash-lite-latest (15-250-500)",
+        "google/gemini-3.1-flash-lite-preview (15-250-500)",
+        "google/gemini-3.5-flash (5-250-20)",
+        "google/gemini-3.6-flash (5-250-20)",
+        "google/gemini-3.8-flash (5-250-20)",
+        "google/gemini-flash-latest (5-250-20)",
+        "google/gemini-3-flash-preview (5-250-20)",
+        "google/gemini-robotics-er-2-preview (5-250-20)",
+        "google/gemma-4-26b-a4b-it (30-16-14400)",
+        "google/gemma-4-31b-it (30-16-14400)",
         "github/github-copilot-auto (200)"
     ]
     return {
@@ -50,7 +50,7 @@ async def list_models():
                 "id": m_id,
                 "object": "model",
                 "created": 1677610602,
-                "owned_by": "pi"
+                "owned_by": m_id.split("/")[0] if "/" in m_id else "pi"
             }
             for m_id in model_ids
         ]
@@ -87,7 +87,7 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
     if system_prompt:
         cmd.extend(["--system-prompt", system_prompt])
         
-    model_name = req.model or "google/gemini-flash-lite-latest (15/250/500)"
+    model_name = req.model or "google/gemini-flash-lite-latest (15-250-500)"
     if " (" in model_name:
         model_name = model_name.split(" (")[0]
     cmd.extend(["--model", model_name])
