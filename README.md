@@ -53,9 +53,19 @@ providers:
     base_url: "http://127.0.0.1:8000/v1"
     api_key: "not-needed"
     models:
-      - pi/default
-      - pi/sonnet
-      - pi/gpt-4o
+      - google/gemini-3.1-flash-lite (15/250/500)
+      - google/gemini-3.5-flash-lite (15/250/500)
+      - google/gemini-flash-lite-latest (15/250/500)
+      - google/gemini-3.1-flash-lite-preview (15/250/500)
+      - google/gemini-3.5-flash (5/250/20)
+      - google/gemini-3.6-flash (5/250/20)
+      - google/gemini-3.8-flash (5/250/20)
+      - google/gemini-flash-latest (5/250/20)
+      - google/gemini-3-flash-preview (5/250/20)
+      - google/gemini-robotics-er-2-preview (5/250/20)
+      - google/gemma-4-26b-a4b-it (30/16/14400)
+      - google/gemma-4-31b-it (30/16/14400)
+      - github/github-copilot-auto (200)
 ```
 
 ---
@@ -63,7 +73,7 @@ providers:
 ## API Endpoints
 
 - **`GET /v1/models`**  
-  Returns available models (`pi/default`, `pi/sonnet`, `pi/gpt-4o`).
+  Returns available models (`google/gemini-3.1-flash-lite (15/250/500)`, `google/gemini-3.5-flash-lite (15/250/500)`, `google/gemini-flash-lite-latest (15/250/500)`, `google/gemini-3.1-flash-lite-preview (15/250/500)`, `google/gemini-3.5-flash (5/250/20)`, `google/gemini-3.6-flash (5/250/20)`, `google/gemini-3.8-flash (5/250/20)`, `google/gemini-flash-latest (5/250/20)`, `google/gemini-3-flash-preview (5/250/20)`, `google/gemini-robotics-er-2-preview (5/250/20)`, `google/gemma-4-26b-a4b-it (30/16/14400)`, `google/gemma-4-31b-it (30/16/14400)`, `github/github-copilot-auto (200)`).
 - **`POST /v1/chat/completions`**  
   Accepts standard OpenAI chat completion payloads, translates them into `pi --no-session -p`, and returns the response (supports `stream: true`).
 
