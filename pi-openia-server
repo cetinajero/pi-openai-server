@@ -1,0 +1,139 @@
+#!/bin/bash
+
+PROJECT_DIR="/Users/cetinajero/projects/python/pi-openai-server"
+SERVER_SCRIPT="$PROJECT_DIR/server.py"
+VENV_PYTHON="$PROJECT_DIR/venv/bin/python3"
+PID_FILE="/tmp/pi-openai-server.pid"
+PLIST_NAME="com.pi-openai-server.plist"
+SYSTEM_PLIST="/Library/LaunchDaemons/$PLIST_NAME"
+SYMLINK_PATH="/usr/local/bin/pi-openia-server"
+
+is_running() {
+  if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE")
+    if ps -p "$PID" > /dev/null 2>&1; then
+      return 0
+    fi
+  fi
+  if pgrep -f "$SERVER_SCRIPT" > /dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+case "$1" in
+  start)
+    if is_running; then
+      echo "Server is already running."
+    else
+      cd "$PROJECT_DIR"
+      nohup "$VENV_PYTHON" "$SERVER_SCRIPT" > "$PROJECT_DIR/server.log" 2>&1 &
+      echo $! > "$PID_FILE"
+      echo "Server started (PID: $!)."
+    fi
+    ;;
+  stop)
+    if is_running; then
+      if [ -f "$PID_FILE" ]; then
+        kill $(cat "$PID_FILE") 2>/dev/null
+        rm -f "$PID_FILE"
+      fi
+      pkill -f "$SERVER_SCRIPT" 2>/dev/null
+      echo "Server stopped."
+    else
+      echo "Server is not running."
+    fi
+    ;;
+  restart)
+    "$0" stop
+    sleep 1
+    "$0" start
+    ;;
+  status)
+    if is_running; then
+      PID=$(cat "$PID_FILE" 2>/dev/null || pgrep -f "$SERVER_SCRIPT" | head -n 1)
+      echo "Status: Running (PID: ${PID:-unknown})"
+    else
+      echo "Status: Not running"
+    fi
+
+    if [ -f "$SYSTEM_PLIST" ]; then
+      echo "Service: Installed as system service ($SYSTEM_PLIST)"
+    else
+      echo "Service: Not installed as system service"
+    fi
+    ;;
+  install)
+    if [ "$EUID" -ne 0 ]; then
+      echo "Installing as system service requires root permissions. Requesting sudo..."
+      sudo "$0" install
+      exit $?
+    fi
+
+    TEMP_PLIST="/tmp/$PLIST_NAME"
+    cat <<EOF > "$TEMP_PLIST"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pi-openai-server</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$VENV_PYTHON</string>
+        <string>$SERVER_SCRIPT</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>$PROJECT_DIR/server.log</string>
+    <key>StandardErrorPath</key>
+    <string>$PROJECT_DIR/server.log</string>
+    <key>UserName</key>
+    <string>cetinajero</string>
+    <key>WorkingDirectory</key>
+    <string>$PROJECT_DIR</string>
+</dict>
+</plist>
+EOF
+
+    cp "$TEMP_PLIST" "$SYSTEM_PLIST"
+    chown root:wheel "$SYSTEM_PLIST"
+    chmod 644 "$SYSTEM_PLIST"
+    launchctl bootout system/$PLIST_NAME 2>/dev/null || true
+    launchctl bootstrap system "$SYSTEM_PLIST"
+    
+    # Create global symlink if possible
+    ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH"
+    chmod +x "$PROJECT_DIR/pi-openia-server"
+    
+    echo "System service installed and loaded successfully (will start on Mac reboot)."
+    echo "Command 'pi-openia-server' linked to $SYMLINK_PATH."
+    ;;
+  uninstall)
+    if [ "$EUID" -ne 0 ]; then
+      echo "Uninstalling system service requires root permissions. Requesting sudo..."
+      sudo "$0" uninstall
+      exit $?
+    fi
+
+    if [ -f "$SYSTEM_PLIST" ]; then
+      launchctl bootout system/$PLIST_NAME 2>/dev/null || true
+      rm -f "$SYSTEM_PLIST"
+      echo "System service uninstalled and removed."
+    else
+      echo "System service is not installed."
+    fi
+
+    if [ -L "$SYMLINK_PATH" ]; then
+      rm -f "$SYMLINK_PATH"
+      echo "Global symlink removed."
+    fi
+    ;;
+  *)
+    echo "Usage: pi-openia-server {status|start|stop|restart|install|uninstall}"
+    exit 1
+    ;;
+esac

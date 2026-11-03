@@ -30,16 +30,31 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
 
 ---
 
-## Running the Server
+## Running & Managing the Server
 
-Start the server using Uvicorn via the virtual environment interpreter:
+You can manage the server using the `pi-openia-server` control script:
 
 ```bash
-source venv/bin/activate
-python3 server.py
+# Check status (running status and system service installation status)
+pi-openia-server status
+
+# Start the HTTP server
+pi-openia-server start
+
+# Stop the HTTP server
+pi-openia-server stop
+
+# Restart the HTTP server
+pi-openia-server restart
+
+# Install as a system service (runs at boot via launchd)
+sudo pi-openia-server install
+
+# Uninstall system service
+sudo pi-openia-server uninstall
 ```
 
-The server will run at: `http://127.0.0.1:8000/v1`
+The server runs at: `http://127.0.0.1:8000/v1`
 
 ---
 

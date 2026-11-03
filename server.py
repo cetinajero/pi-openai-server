@@ -19,7 +19,7 @@ class ChatMessage(BaseModel):
         extra = "allow"
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "google/gemini-3.1-flash-lite (15/250/500)"
+    model: str = "google/gemini-flash-lite-latest (15/250/500)"
     messages: List[ChatMessage]
     stream: Optional[bool] = False
 
@@ -87,7 +87,7 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
     if system_prompt:
         cmd.extend(["--system-prompt", system_prompt])
         
-    model_name = req.model or "google/gemini-3.1-flash-lite (15/250/500)"
+    model_name = req.model or "google/gemini-flash-lite-latest (15/250/500)"
     if " (" in model_name:
         model_name = model_name.split(" (")[0]
     cmd.extend(["--model", model_name])
