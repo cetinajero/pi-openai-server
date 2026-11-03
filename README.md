@@ -24,6 +24,7 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
    ```bash
    python3 -m venv venv
    source venv/bin/activate
+   pip install --upgrade pip
    pip install fastapi uvicorn pydantic
    ```
 
