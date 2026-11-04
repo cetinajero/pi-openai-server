@@ -74,8 +74,6 @@ providers:
       - gemini-3.1-flash-lite (15-250-500)
       - gemini-3.5-flash-lite (15-250-500)
       - gemini-flash-lite-latest (15-250-500)
-      - gemini-3.1-flash-lite-preview (15-250-500)
-      - gemini-3.5-flash (5-250-20)
       - gemini-3.6-flash (5-250-20)
       - gemini-3.8-flash (5-250-20)
       - gemini-flash-latest (5-250-20)
@@ -91,7 +89,7 @@ providers:
 ## API Endpoints
 
 - **`GET /v1/models`**  
-  Returns available models (`gemini-3.1-flash-lite (15-250-500)`, `gemini-3.5-flash-lite (15-250-500)`, `gemini-flash-lite-latest (15-250-500)`, `gemini-3.1-flash-lite-preview (15-250-500)`, `gemini-3.5-flash (5-250-20)`, `gemini-3.6-flash (5-250-20)`, `gemini-3.8-flash (5-250-20)`, `gemini-flash-latest (5-250-20)`, `gemini-3-flash-preview (5-250-20)`, `gemini-robotics-er-2-preview (5-250-20)`, `gemma-4-26b-a4b-it (30-16-14400)`, `gemma-4-31b-it (30-16-14400)`, `github-copilot-auto (200)`).
+  Returns available models (`gemini-3.1-flash-lite (15-250-500)`, `gemini-3.5-flash-lite (15-250-500)`, `gemini-flash-lite-latest (15-250-500)`, `gemini-3.6-flash (5-250-20)`, `gemini-3.8-flash (5-250-20)`, `gemini-flash-latest (5-250-20)`, `gemini-3-flash-preview (5-250-20)`, `gemini-robotics-er-2-preview (5-250-20)`, `gemma-4-26b-a4b-it (30-16-14400)`, `gemma-4-31b-it (30-16-14400)`, `github-copilot-auto (200)`).
 - **`POST /v1/chat/completions`**  
   Accepts standard OpenAI chat completion payloads, translates them into `pi --no-session -p`, and returns the response (supports `stream: true`).
 
