@@ -3,28 +3,31 @@ import subprocess
 import time
 import sys
 import json
+from contextlib import asynccontextmanager
+import logging
 from typing import List, Optional, Any
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import uvicorn
 
-app = FastAPI(title="Pi OpenAI-Compatible API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("-" * 60)
+    yield
+
+app = FastAPI(title="Pi OpenAI-Compatible API", version="1.0.0", lifespan=lifespan)
 
 class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="allow")
     role: str
     content: Optional[str] = None
 
-    class Config:
-        extra = "allow"
-
 class ChatCompletionRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
     model: str = "gemini-flash-lite-latest (15-250-500)"
     messages: List[ChatMessage]
     stream: Optional[bool] = False
-
-    class Config:
-        extra = "allow"
 
 def load_models():
     models_path = os.path.join(os.path.dirname(__file__), "models.yml")
