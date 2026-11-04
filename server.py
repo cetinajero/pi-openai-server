@@ -206,4 +206,10 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    from uvicorn.config import LOGGING_CONFIG
+
+    log_config = LOGGING_CONFIG.copy()
+    log_config["formatters"]["access"]["fmt"] = "%(asctime)s %(levelname)s %(client_addr)s - \"%(request_line)s\" %(status_code)s"
+    log_config["formatters"]["default"]["fmt"] = "%(asctime)s %(levelname)s %(message)s"
+
+    uvicorn.run(app, host="127.0.0.1", port=8000, log_config=log_config)
