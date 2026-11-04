@@ -27,23 +27,38 @@ class ChatCompletionRequest(BaseModel):
         extra = "allow"
 
 def load_models():
-    models_path = os.path.join(os.path.dirname(__file__), "models.md")
+    models_path = os.path.join(os.path.dirname(__file__), "models.yml")
     models = []
     try:
         with open(models_path, "r") as f:
+            current_model = {}
             for line in f:
                 line = line.strip()
-                if line.startswith("|") and not line.startswith("| ---") and not "Model ID" in line:
-                    parts = [p.strip() for p in line.split("|")]
-                    if len(parts) >= 5:
-                        model_id = parts[1]
-                        owned_by = parts[2]
-                        rate_limits = parts[3]
-                        full_id = f"{model_id} ({rate_limits})"
-                        models.append({"id": full_id, "owned_by": owned_by})
+                if not line or line.startswith("models:"):
+                    continue
+                if line.startswith("- id:"):
+                    if current_model:
+                        models.append(current_model)
+                    current_model = {"id": line.split("- id:")[1].strip().strip('"').strip("'")}
+                elif line.startswith("id:"):
+                    if current_model:
+                        models.append(current_model)
+                    current_model = {"id": line.split("id:")[1].strip().strip('"').strip("'")}
+                elif line.startswith("owned_by:"):
+                    current_model["owned_by"] = line.split("owned_by:")[1].strip().strip('"').strip("'")
+                elif line.startswith("rate_limits:"):
+                    current_model["rate_limits"] = line.split("rate_limits:")[1].strip().strip('"').strip("'")
+            if current_model:
+                models.append(current_model)
     except Exception:
         pass
-    return models
+        
+    formatted_models = []
+    for m in models:
+        if "id" in m and "rate_limits" in m:
+            full_id = f"{m['id']} ({m['rate_limits']})"
+            formatted_models.append({"id": full_id, "owned_by": m.get("owned_by", "pi")})
+    return formatted_models
 
 @app.get("/v1/models")
 async def list_models():

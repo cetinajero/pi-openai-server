@@ -1,0 +1,34 @@
+models:
+  - id: gemini-3.1-flash-lite
+    owned_by: google
+    rate_limits: 15-250-500
+  - id: gemini-3.5-flash-lite
+    owned_by: google
+    rate_limits: 15-250-500
+  - id: gemini-flash-lite-latest
+    owned_by: google
+    rate_limits: 15-250-500
+  - id: gemini-3.6-flash
+    owned_by: google
+    rate_limits: 5-250-20
+  - id: gemini-3.8-flash
+    owned_by: google
+    rate_limits: 5-250-20
+  - id: gemini-flash-latest
+    owned_by: google
+    rate_limits: 5-250-20
+  - id: gemini-3-flash-preview
+    owned_by: google
+    rate_limits: 5-250-20
+  - id: gemini-robotics-er-2-preview
+    owned_by: google
+    rate_limits: 5-250-20
+  - id: gemma-4-26b-a4b-it
+    owned_by: google
+    rate_limits: 30-16-14400
+  - id: gemma-4-31b-it
+    owned_by: google
+    rate_limits: 30-16-14400
+  - id: github-copilot-auto
+    owned_by: github
+    rate_limits: 200
