@@ -27,12 +27,23 @@ class ChatCompletionRequest(BaseModel):
         extra = "allow"
 
 def load_models():
-    models_path = os.path.join(os.path.dirname(__file__), "models.json")
+    models_path = os.path.join(os.path.dirname(__file__), "models.md")
+    models = []
     try:
         with open(models_path, "r") as f:
-            return json.load(f)
+            for line in f:
+                line = line.strip()
+                if line.startswith("|") and not line.startswith("| ---") and not "Model ID" in line:
+                    parts = [p.strip() for p in line.split("|")]
+                    if len(parts) >= 5:
+                        model_id = parts[1]
+                        owned_by = parts[2]
+                        rate_limits = parts[3]
+                        full_id = f"{model_id} ({rate_limits})"
+                        models.append({"id": full_id, "owned_by": owned_by})
     except Exception:
-        return []
+        pass
+    return models
 
 @app.get("/v1/models")
 async def list_models():
