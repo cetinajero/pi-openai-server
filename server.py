@@ -31,33 +31,27 @@ def load_models():
     models = []
     try:
         with open(models_path, "r") as f:
-            current_model = {}
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("models:"):
                     continue
-                if line.startswith("- id:"):
-                    if current_model:
-                        models.append(current_model)
-                    current_model = {"id": line.split("- id:")[1].strip().strip('"').strip("'")}
-                elif line.startswith("id:"):
-                    if current_model:
-                        models.append(current_model)
-                    current_model = {"id": line.split("id:")[1].strip().strip('"').strip("'")}
-                elif line.startswith("owned_by:"):
-                    current_model["owned_by"] = line.split("owned_by:")[1].strip().strip('"').strip("'")
-                elif line.startswith("rate_limits:"):
-                    current_model["rate_limits"] = line.split("rate_limits:")[1].strip().strip('"').strip("'")
-            if current_model:
-                models.append(current_model)
+                if "{" in line and "}" in line:
+                    content = line[line.find("{")+1 : line.find("}")]
+                    parts = [p.strip() for p in content.split(",")]
+                    m = {}
+                    for p in parts:
+                        if ":" in p:
+                            k, v = p.split(":", 1)
+                            m[k.strip()] = v.strip().strip('"').strip("'")
+                    if "id" in m and "rate_limits" in m:
+                        models.append(m)
     except Exception:
         pass
         
     formatted_models = []
     for m in models:
-        if "id" in m and "rate_limits" in m:
-            full_id = f"{m['id']} ({m['rate_limits']})"
-            formatted_models.append({"id": full_id, "owned_by": m.get("owned_by", "pi")})
+        full_id = f"{m['id']} ({m['rate_limits']})"
+        formatted_models.append({"id": full_id, "owned_by": m.get("owned_by", "pi")})
     return formatted_models
 
 @app.get("/v1/models")
