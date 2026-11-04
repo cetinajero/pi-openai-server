@@ -6,7 +6,7 @@ VENV_PYTHON="$PROJECT_DIR/venv/bin/python3"
 PID_FILE="/tmp/pi-openai-server.pid"
 PLIST_NAME="com.pi-openai-server.plist"
 SYSTEM_PLIST="/Library/LaunchDaemons/$PLIST_NAME"
-SYMLINK_PATH="/usr/local/bin/pi-openia-server"
+SYMLINK_PATH="/usr/local/bin/pi-openai-server"
 
 is_running() {
   if [ -f "$PID_FILE" ]; then
@@ -109,12 +109,12 @@ EOF
     launchctl enable system/$PLIST_NAME 2>/dev/null || true
     launchctl bootstrap system "$SYSTEM_PLIST" 2>/dev/null || launchctl load -w "$SYSTEM_PLIST"
 
-    ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH"
-    chmod +x "$PROJECT_DIR/pi-openia-server"
+    ln -sf "$PROJECT_DIR/pi-openai-server" "$SYMLINK_PATH"
+    chmod +x "$PROJECT_DIR/pi-openai-server"
     chmod +x "$SYMLINK_PATH"
 
     echo "System service installed and loaded successfully (will start on Mac reboot)."
-    echo "Command 'pi-openia-server' updated and linked to $SYMLINK_PATH."
+    echo "Command 'pi-openai-server' updated and linked to $SYMLINK_PATH."
     ;;
   uninstall)
     if [ "$EUID" -ne 0 ]; then
@@ -137,7 +137,7 @@ EOF
     fi
     ;;
   update)
-    echo "Updating pi-openia-server repository..."
+    echo "Updating pi-openai-server repository..."
     cd "$PROJECT_DIR"
     git pull origin main
 
@@ -149,11 +149,11 @@ EOF
     echo "Updating global symlink..."
     if [ "$EUID" -eq 0 ]; then
       mkdir -p /usr/local/bin
-      ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH"
-      chmod +x "$PROJECT_DIR/pi-openia-server"
+      ln -sf "$PROJECT_DIR/pi-openai-server" "$SYMLINK_PATH"
+      chmod +x "$PROJECT_DIR/pi-openai-server"
       chmod +x "$SYMLINK_PATH"
     else
-      sudo ln -sf "$PROJECT_DIR/pi-openia-server" "$SYMLINK_PATH" 2>/dev/null || true
+      sudo ln -sf "$PROJECT_DIR/pi-openai-server" "$SYMLINK_PATH" 2>/dev/null || true
     fi
 
     echo "Restarting service/server..."
@@ -165,7 +165,7 @@ EOF
     echo "Update completed successfully."
     ;;
   *)
-    echo "Usage: pi-openia-server {status|start|stop|restart|install|uninstall|update}"
+    echo "Usage: pi-openai-server {status|start|stop|restart|install|uninstall|update}"
     exit 1
     ;;
 esac

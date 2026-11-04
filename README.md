@@ -32,29 +32,29 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
 
 ## Running & Managing the Server
 
-You can manage the server using the `pi-openia-server` control script:
+You can manage the server using the `pi-openai-server` control script:
 
 ```bash
 # Check status (running status and system service installation status)
-pi-openia-server status
+pi-openai-server status
 
 # Start the HTTP server
-pi-openia-server start
+pi-openai-server start
 
 # Stop the HTTP server
-pi-openia-server stop
+pi-openai-server stop
 
 # Restart the HTTP server
-pi-openia-server restart
+pi-openai-server restart
 
 # Install as a system service (runs at boot via launchd)
-sudo pi-openia-server install
+sudo pi-openai-server install
 
 # Uninstall system service
-sudo pi-openia-server uninstall
+sudo pi-openai-server uninstall
 
 # Update to the latest version (pulls git repo, updates dependencies, updates symlink and restarts)
-pi-openia-server update
+pi-openai-server update
 ```
 
 The server runs at: `http://127.0.0.1:8000/v1`
