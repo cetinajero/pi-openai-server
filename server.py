@@ -26,33 +26,27 @@ class ChatCompletionRequest(BaseModel):
     class Config:
         extra = "allow"
 
+def load_models():
+    models_path = os.path.join(os.path.dirname(__file__), "models.json")
+    try:
+        with open(models_path, "r") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
 @app.get("/v1/models")
 async def list_models():
-    models_info = [
-        ("gemini-3.1-flash-lite (15-250-500)", "google"),
-        ("gemini-3.5-flash-lite (15-250-500)", "google"),
-        ("gemini-flash-lite-latest (15-250-500)", "google"),
-        ("gemini-3.1-flash-lite-preview (15-250-500)", "google"),
-        ("gemini-3.5-flash (5-250-20)", "google"),
-        ("gemini-3.6-flash (5-250-20)", "google"),
-        ("gemini-3.8-flash (5-250-20)", "google"),
-        ("gemini-flash-latest (5-250-20)", "google"),
-        ("gemini-3-flash-preview (5-250-20)", "google"),
-        ("gemini-robotics-er-2-preview (5-250-20)", "google"),
-        ("gemma-4-26b-a4b-it (30-16-14400)", "google"),
-        ("gemma-4-31b-it (30-16-14400)", "google"),
-        ("github-copilot-auto (200)", "github")
-    ]
+    models = load_models()
     return {
         "object": "list",
         "data": [
             {
-                "id": m_id,
+                "id": m["id"],
                 "object": "model",
                 "created": 1677610602,
-                "owned_by": owner
+                "owned_by": m.get("owned_by", "pi")
             }
-            for m_id, owner in models_info
+            for m in models
         ]
     }
 
@@ -87,7 +81,9 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
     if system_prompt:
         cmd.extend(["--system-prompt", system_prompt])
         
-    model_name = req.model or "gemini-flash-lite-latest (15-250-500)"
+    models = load_models()
+    default_model = models[0]["id"] if models else "gemini-flash-lite-latest (15-250-500)"
+    model_name = req.model or default_model
     if " (" in model_name:
         model_name = model_name.split(" (")[0]
     cmd.extend(["--model", model_name])
