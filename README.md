@@ -1,6 +1,6 @@
 # An OpenAI-compatible API server for Pi.dev
 
-A lightweight FastAPI server that wraps the **Pi coding assistant** (`pi --no-session`) and exposes an **OpenAI-compatible REST API** (`/v1/models` and `/v1/chat/completions`). 
+A lightweight FastAPI server that wraps the [Pi agent harness](https://pi.dev) and exposes an **OpenAI-compatible REST API**. 
 
 This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline, or any other OpenAI-compatible client.
 
@@ -13,20 +13,16 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
 
 ---
 
-## Installation
+## Installation & Setup
 
 1. Clone or copy this repository:
    ```bash
-   git clone https://github.com/cetinajero/pi-openai-server
-   cd pi-openai-server
+   git clone https://github.com/cetinajero/pi-openai-server & cd pi-openai-server
    ```
 
-2. Create a Python virtual environment and install dependencies:
+2. Configure your desired models in `models.yml`:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install --upgrade pip
-   pip install fastapi uvicorn pydantic
+   vi models.yml
    ```
 
 3. Install as a system service (runs at boot via launchd):

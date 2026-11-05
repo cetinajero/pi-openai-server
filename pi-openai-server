@@ -87,7 +87,7 @@ case "$1" in
     mkdir -p "$PROJECT_DIR"
     
     # Copy project files (excluding .git if desired, but keeping venv if present)
-    rsync -av --exclude='.git' --exclude='logs/*.log' "$SRC_DIR/" "$PROJECT_DIR/"
+    rsync -av --exclude='logs/*.log' "$SRC_DIR/" "$PROJECT_DIR/"
     
     # Ensure logs directory exists with correct permissions
     mkdir -p "$PROJECT_DIR/logs"
