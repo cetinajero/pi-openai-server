@@ -25,6 +25,12 @@ if not agent_logger.handlers:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Clear agent.log on startup, keep server.log intact
+    agent_log_path = os.path.join(LOGS_DIR, "agent.log")
+    try:
+        open(agent_log_path, "w").close()
+    except Exception:
+        pass
     print("-" * 60, flush=True)
     yield
 
