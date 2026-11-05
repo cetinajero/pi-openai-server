@@ -1,6 +1,18 @@
 #!/bin/bash
 
-PROJECT_DIR="/Users/cetinajero/projects/python/pi-openai-server"
+# Determine real user and home directory (compatible with sudo)
+REAL_USER="${SUDO_USER:-$USER}"
+if [ -z "$REAL_USER" ] || [ "$REAL_USER" = "root" ]; then
+  REAL_USER=$(logname 2>/dev/null || whoami)
+fi
+REAL_HOME="$(eval echo ~$REAL_USER)"
+if [ ! -d "$REAL_HOME" ]; then
+  REAL_HOME="$HOME"
+fi
+
+PROJECT_DIR="$REAL_HOME/.pi-openai-server"
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 SERVER_SCRIPT="$PROJECT_DIR/server.py"
 VENV_PYTHON="$PROJECT_DIR/venv/bin/python3"
 PID_FILE="/tmp/pi-openai-server.pid"
@@ -62,12 +74,30 @@ case "$1" in
     else
       echo "Service: Not installed as system service"
     fi
+    echo "Project Directory: $PROJECT_DIR"
     ;;
   install)
     if [ "$EUID" -ne 0 ]; then
       echo "Installing as system service requires root permissions. Requesting sudo..."
       sudo "$0" install
       exit $?
+    fi
+
+    echo "Syncing project to hidden directory: $PROJECT_DIR"
+    mkdir -p "$PROJECT_DIR"
+    
+    # Copy project files (excluding .git if desired, but keeping venv if present)
+    rsync -av --exclude='.git' --exclude='logs/*.log' "$SRC_DIR/" "$PROJECT_DIR/"
+    
+    # Ensure logs directory exists with correct permissions
+    mkdir -p "$PROJECT_DIR/logs"
+    chown -R "$REAL_USER:staff" "$PROJECT_DIR"
+
+    # If venv doesn't exist in target, create it and install requirements
+    if [ ! -f "$VENV_PYTHON" ]; then
+      echo "Creating virtual environment in $PROJECT_DIR/venv..."
+      sudo -u "$REAL_USER" python3 -m venv "$PROJECT_DIR/venv"
+      sudo -u "$REAL_USER" "$VENV_PYTHON" -m pip install --upgrade pip fastapi uvicorn pydantic
     fi
 
     mkdir -p /usr/local/bin
@@ -94,7 +124,7 @@ case "$1" in
     <key>StandardErrorPath</key>
     <string>$PROJECT_DIR/logs/server.log</string>
     <key>UserName</key>
-    <string>cetinajero</string>
+    <string>$REAL_USER</string>
     <key>WorkingDirectory</key>
     <string>$PROJECT_DIR</string>
 </dict>
@@ -114,6 +144,7 @@ EOF
     chmod +x "$SYMLINK_PATH"
 
     echo "System service installed and loaded successfully (will start on Mac reboot)."
+    echo "Project installed at: $PROJECT_DIR"
     echo "Command 'pi-openai-server' updated and linked to $SYMLINK_PATH."
     ;;
   uninstall)
@@ -142,7 +173,7 @@ EOF
   update)
     echo "Updating pi-openai-server repository..."
     cd "$PROJECT_DIR"
-    git pull origin main
+    git pull origin main 2>/dev/null || echo "Not a git repo or offline, skipping git pull."
 
     echo "Updating Python dependencies..."
     if [ -f "$PROJECT_DIR/venv/bin/pip" ]; then

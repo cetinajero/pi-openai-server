@@ -13,11 +13,12 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
 
 ---
 
-## Installation & Setup
+## Installation
 
-1. Clone or copy this repository to your projects directory:
+1. Clone or copy this repository:
    ```bash
-   cd ~/projects/python/pi-openai-server
+   git clone https://github.com/cetinajero/pi-openai-server
+   cd pi-openai-server
    ```
 
 2. Create a Python virtual environment and install dependencies:
@@ -26,6 +27,11 @@ This allows you to use Pi as a local provider in **Hermes Agent**, Aider, Cline,
    source venv/bin/activate
    pip install --upgrade pip
    pip install fastapi uvicorn pydantic
+   ```
+
+3. Install as a system service (runs at boot via launchd):
+   ```bash
+   sudo ./pi-openai-server install
    ```
 
 ---
@@ -63,25 +69,15 @@ The server runs at: `http://127.0.0.1:8000/v1`
 
 ## Integration with Hermes Agent
 
-Add the following provider configuration to your Hermes configuration file (`~/.hermes/config.yaml`):
+Use `hermes setup` or add the following provider configuration to your Hermes configuration file (`~/.hermes/config.yaml`):
 
 ```yaml
-providers:
-  pi_local:
-    base_url: "http://127.0.0.1:8000/v1"
-    api_key: "not-needed"
-    models:
-      - gemini-3.1-flash-lite (15-250-500)
-      - gemini-3.5-flash-lite (15-250-500)
-      - gemini-flash-lite-latest (15-250-500)
-      - gemini-3.6-flash (5-250-20)
-      - gemini-3.8-flash (5-250-20)
-      - gemini-flash-latest (5-250-20)
-      - gemini-3-flash-preview (5-250-20)
-      - gemini-robotics-er-2-preview (5-250-20)
-      - gemma-4-26b-a4b-it (30-16-14400)
-      - gemma-4-31b-it (30-16-14400)
-      - github-copilot-auto (200)
+custom_providers: 
+  - name: Pi OpenIA
+    base_url: http://127.0.0.1:8000/v1
+    model: pi/default
+    models: {}
+    models_discovered: false
 ```
 
 ---
@@ -89,7 +85,7 @@ providers:
 ## API Endpoints
 
 - **`GET /v1/models`**  
-  Returns available models (`gemini-3.1-flash-lite (15-250-500)`, `gemini-3.5-flash-lite (15-250-500)`, `gemini-flash-lite-latest (15-250-500)`, `gemini-3.6-flash (5-250-20)`, `gemini-3.8-flash (5-250-20)`, `gemini-flash-latest (5-250-20)`, `gemini-3-flash-preview (5-250-20)`, `gemini-robotics-er-2-preview (5-250-20)`, `gemma-4-26b-a4b-it (30-16-14400)`, `gemma-4-31b-it (30-16-14400)`, `github-copilot-auto (200)`).
+  Returns available models.
 - **`POST /v1/chat/completions`**  
   Accepts standard OpenAI chat completion payloads, translates them into `pi --no-session -p`, and returns the response (supports `stream: true`).
 
