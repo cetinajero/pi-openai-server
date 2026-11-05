@@ -27,7 +27,7 @@ case "$1" in
       echo "Server is already running."
     else
       cd "$PROJECT_DIR"
-      nohup "$VENV_PYTHON" "$SERVER_SCRIPT" > "$PROJECT_DIR/server.log" 2>&1 &
+      nohup "$VENV_PYTHON" "$SERVER_SCRIPT" > "$PROJECT_DIR/logs/server.log" 2>&1 &
       echo $! > "$PID_FILE"
       echo "Server started (PID: $!)."
     fi
@@ -90,9 +90,9 @@ case "$1" in
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>$PROJECT_DIR/server.log</string>
+    <string>$PROJECT_DIR/logs/server.log</string>
     <key>StandardErrorPath</key>
-    <string>$PROJECT_DIR/server.log</string>
+    <string>$PROJECT_DIR/logs/server.log</string>
     <key>UserName</key>
     <string>cetinajero</string>
     <key>WorkingDirectory</key>

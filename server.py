@@ -11,9 +11,21 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict
 import uvicorn
 
+# Setup logs directory
+LOGS_DIR = os.path.join(os.path.dirname(__file__), "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+# Configure agent logger for requests and responses
+agent_logger = logging.getLogger("agent_activity")
+agent_logger.setLevel(logging.INFO)
+agent_handler = logging.FileHandler(os.path.join(LOGS_DIR, "agent.log"))
+agent_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+if not agent_logger.handlers:
+    agent_logger.addHandler(agent_handler)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.info("-" * 60)
+    print("-" * 60, flush=True)
     yield
 
 app = FastAPI(title="Pi OpenAI-Compatible API", version="1.0.0", lifespan=lifespan)
@@ -76,9 +88,12 @@ async def list_models():
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
     try:
-        body = await raw_request.json()
+        req_body = await raw_request.json()
     except Exception:
-        body = {}
+        req_body = {}
+
+    agent_logger.info(f"--- INCOMING REQUEST ---")
+    agent_logger.info(json.dumps(req_body, ensure_ascii=False))
 
     system_prompt = None
     prompt_parts = []
@@ -132,17 +147,27 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
         
         if result.returncode != 0:
             error_msg = result.stderr.strip() or result.stdout.strip() or "Unknown error from pi"
+            agent_logger.error(f"Pi execution failed: {error_msg}")
             raise HTTPException(status_code=500, detail=f"Pi execution failed: {error_msg}")
             
         output_text = result.stdout.strip()
         
         # Handle streaming (SSE) if requested
         if req.stream:
+            resp_obj = {
+                "id": f"chatcmpl-{int(time.time())}",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": req.model,
+                "choices": [{"index": 0, "message": {"role": "assistant", "content": output_text}, "finish_reason": "stop"}]
+            }
+            agent_logger.info(f"--- OUTGOING STREAMING RESPONSE ---")
+            agent_logger.info(json.dumps(resp_obj, ensure_ascii=False))
+
             def event_generator():
                 chunk_id = f"chatcmpl-{int(time.time())}"
                 created = int(time.time())
                 
-                # Initial empty delta with role
                 chunk_1 = {
                     "id": chunk_id,
                     "object": "chat.completion.chunk",
@@ -152,7 +177,6 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
                 }
                 yield f"data: {json.dumps(chunk_1)}\n\n"
                 
-                # Stream content in chunks (words)
                 words = output_text.split(" ")
                 for i, word in enumerate(words):
                     piece = word + (" " if i < len(words) - 1 else "")
@@ -166,7 +190,6 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
                     yield f"data: {json.dumps(chunk_piece)}\n\n"
                     time.sleep(0.01)
                     
-                # Final finish reason chunk
                 chunk_end = {
                     "id": chunk_id,
                     "object": "chat.completion.chunk",
@@ -180,7 +203,7 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
             return StreamingResponse(event_generator(), media_type="text/event-stream")
         
         # Non-streaming response
-        return {
+        resp_obj = {
             "id": f"chatcmpl-{int(time.time())}",
             "object": "chat.completion",
             "created": int(time.time()),
@@ -201,9 +224,15 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
                 "total_tokens": len(full_prompt.split()) + len(output_text.split())
             }
         }
+        agent_logger.info(f"--- OUTGOING RESPONSE ---")
+        agent_logger.info(json.dumps(resp_obj, ensure_ascii=False))
+
+        return resp_obj
     except subprocess.TimeoutExpired:
+        agent_logger.error("Pi execution timed out")
         raise HTTPException(status_code=504, detail="Pi execution timed out")
     except Exception as e:
+        agent_logger.error(f"Exception: {str(e)}")
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=str(e))
