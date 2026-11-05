@@ -31,7 +31,6 @@ async def lifespan(app: FastAPI):
         open(agent_log_path, "w").close()
     except Exception:
         pass
-    print("-" * 60, flush=True)
     yield
 
 app = FastAPI(title="Pi OpenAI-Compatible API", version="1.0.0", lifespan=lifespan)
@@ -245,6 +244,8 @@ async def chat_completions(req: ChatCompletionRequest, raw_request: Request):
 
 if __name__ == "__main__":
     from uvicorn.config import LOGGING_CONFIG
+
+    print("-" * 60, flush=True)
 
     log_config = LOGGING_CONFIG.copy()
     log_config["formatters"]["access"]["fmt"] = "%(asctime)s %(levelname)s %(client_addr)s - \"%(request_line)s\" %(status_code)s"
