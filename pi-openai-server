@@ -123,6 +123,9 @@ EOF
       exit $?
     fi
 
+    echo "Stopping server if running..."
+    "$0" stop 2>/dev/null || true
+
     if [ -f "$SYSTEM_PLIST" ]; then
       launchctl bootout system/$PLIST_NAME 2>/dev/null || launchctl unload "$SYSTEM_PLIST" 2>/dev/null || true
       rm -f "$SYSTEM_PLIST"
